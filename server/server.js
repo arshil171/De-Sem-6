@@ -1,18 +1,22 @@
-require("dotenv").config(); // ✅ MUST BE FIRST
+import dotenv from "dotenv"; 
+dotenv.config();
+import express from "express"
+import dbConnect from "./config/db.js"
+import authRoute from "./routes/authRoutes.js";
+import cookieParser from "cookie-parser";
 
-const express = require("express");
-const { dbConnect } = require("./config/db");
 
 const app = express();
 const PORT = 8080;
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(cookieParser());
 
-app.use("/", authRoute)
+app.use("/auth", authRoute)
 
 app.listen(PORT, (err) => {
-    if (err) {
+    if (err) { 
         console.log("Server is Not Running");
         return;
     }
