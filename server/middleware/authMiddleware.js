@@ -22,7 +22,7 @@ export const requireAuth = (req, res, next) => {
 
 
         req.user = {
-            id: decode.id,
+            _id: decode.id,
             role: decode.role
 
         }
