@@ -80,7 +80,7 @@ const ForgotPassword = () => {
         `${BASE}/auth/checkOtp`,
         { otpNumber },
         { withCredentials: true }
-      );
+      );    
       setSuccess(res.data.message || "OTP verified!");
       setTimeout(() => { setSuccess(""); setStep(3); }, 1500);
     } catch (err) {
