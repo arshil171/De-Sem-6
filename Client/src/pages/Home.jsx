@@ -1,3 +1,192 @@
+// import { useState } from "react";
+// import {
+//   GoogleMap,
+//   LoadScript,
+//   DirectionsRenderer,
+//   Marker,
+// } from "@react-google-maps/api";
+
+// const BookingForm = () => {
+//   const [pickupLocation, setPickupLocation] = useState("");
+//   const [destination, setDestination] = useState("");
+//   const [bookingStatus, setBookingStatus] = useState("");
+//   const [isLoading, setIsLoading] = useState(false);
+//   const [message, setMessage] = useState({ type: "", text: "" });
+//   const [directions, setDirections] = useState(null);
+//   const [tractorPosition, setTractorPosition] = useState(null);
+
+//   const handleSubmit = (event) => {
+//     event.preventDefault();
+//     setMessage({ type: "", text: "" });
+//     setDirections(null);
+//     setTractorPosition(null);
+
+//     if (pickupLocation && destination) {
+//       setBookingStatus(
+//         `Booking a tractor from "${pickupLocation}" to "${destination}". Please wait...`
+//       );
+//       setIsLoading(true);
+//       setMessage({
+//         type: "info",
+//         text: `Booking a tractor from "${pickupLocation}" to "${destination}". Please wait...`,
+//       });
+
+//       setTimeout(() => {
+//         setBookingStatus(
+//           `Tractor booked successfully from "${pickupLocation}" to "${destination}"!`
+//         );
+//         setIsLoading(false);
+//         setMessage({
+//           type: "success",
+//           text: `Tractor booked successfully from "${pickupLocation}" to "${destination}"!`,
+//         });
+
+//         // Get directions
+//         const directionsService = new window.google.maps.DirectionsService();
+//         directionsService.route(
+//           {
+//             origin: pickupLocation,
+//             destination: destination,
+//             travelMode: window.google.maps.TravelMode.DRIVING,
+//           },
+//           (result, status) => {
+//             if (status === "OK") {
+//               setDirections(result);
+
+//               // Animate tractor along the route
+//               const route = result.routes[0].overview_path;
+//               let step = 0;
+//               setTractorPosition(route[0].toJSON());
+
+//               const interval = setInterval(() => {
+//                 step++;
+//                 if (step < route.length) {
+//                   setTractorPosition(route[step].toJSON());
+//                 } else {
+//                   clearInterval(interval);
+//                 }
+//               }, 500); // move every 0.5s
+//             } else {
+//               console.error(`Error fetching directions: ${status}`);
+//             }
+//           }
+//         );
+//       }, 2000);
+//     } else {
+//       setBookingStatus("Please enter both pickup and destination locations.");
+//       setMessage({
+//         type: "error",
+//         text: "Please enter both pickup and destination locations.",
+//       });
+//     }
+//   };
+
+//   const messageClasses = {
+//     success: "bg-green-100 text-green-700 border border-green-300",
+//     error: "bg-red-100 text-red-700 border border-red-300",
+//     info: "bg-blue-100 text-blue-700 border border-blue-300",
+//   };
+
+//   return (
+//     <div className="max-w-2xl mx-auto mt-10 p-6 bg-white rounded-2xl shadow-md">
+//       <h2 className="text-2xl font-semibold text-center mb-4 text-gray-800">
+//         Book a Tractor
+//       </h2>
+
+//       {/* Booking Form */}
+//       <form onSubmit={handleSubmit} className="space-y-4">
+//         <div>
+//           <label
+//             htmlFor="pickup"
+//             className="block text-sm font-medium text-gray-700 mb-1"
+//           >
+//             Pickup Point:
+//           </label>
+//           <input
+//             type="text"
+//             id="pickup"
+//             value={pickupLocation}
+//             onChange={(e) => setPickupLocation(e.target.value)}
+//             placeholder="Enter pickup location"
+//             disabled={isLoading}
+//             className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:bg-gray-100"
+//             required
+//           />
+//         </div>
+
+//         <div>
+//           <label
+//             htmlFor="destination"
+//             className="block text-sm font-medium text-gray-700 mb-1"
+//           >
+//             Where to?
+//           </label>
+//           <input
+//             type="text"
+//             id="destination"
+//             value={destination}
+//             onChange={(e) => setDestination(e.target.value)}
+//             placeholder="Enter destination"
+//             disabled={isLoading}
+//             className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:bg-gray-100"
+//             required
+//           />
+//         </div>
+
+//         <button
+//           type="submit"
+//           disabled={isLoading}
+//           className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition disabled:bg-gray-400"
+//         >
+//           {isLoading ? "Booking..." : "Book Tractor"}
+//         </button>
+//       </form>
+
+//       {/* Status Message */}
+//       {message.text && (
+//         <div
+//           className={`mt-4 p-3 rounded-lg text-sm ${messageClasses[message.type]}`}
+//         >
+//           {message.text}
+//         </div>
+//       )}
+
+//       {/* Google Map (shows after booking) */}
+//       {directions && (
+//         <div className="mt-6">
+//           <LoadScript googleMapsApiKey="">   
+//             <GoogleMap
+//               mapContainerClassName="h-96 w-full"
+//               zoom={12}
+//               center={tractorPosition || { lat: 20.5937, lng: 78.9629 }}
+//             >
+//               <DirectionsRenderer directions={directions} />
+//               {tractorPosition && (
+//                 <Marker
+//                   position={tractorPosition}
+//                   icon={{
+//                     url: "https://cdn-icons-png.flaticon.com/512/1995/1995574.png",
+//                     scaledSize: new window.google.maps.Size(40, 40),
+//                   }}
+//                 />
+//               )}
+//             </GoogleMap>
+//           </LoadScript>
+//         </div>
+//       )}
+//     </div>
+//   );
+// };
+
+// export default BookingForm;
+
+
+
+
+
+
+
+
 import React, { useState, useEffect } from 'react';
 
 const BookingForm = () => {
