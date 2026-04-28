@@ -28,10 +28,10 @@ const tractorSchema = new mongoose.Schema(
 
     maxHoursPerBooking: {
         type: Number,
-        default: 8   // 🚫 max limit
+        default: 8 
     },
 
-    location: {
+    location: { 
         type: String,
         required: true
     },
