@@ -45,7 +45,9 @@ const tractorSchema = new mongoose.Schema(
     timestamps: true
 });
 
-export const tractorModel = mongoose.model("Tractor", tractorSchema);
+ const tractorModel = mongoose.model("Tractor", tractorSchema);
+
+ export default tractorModel
 
 
 // {

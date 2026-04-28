@@ -109,7 +109,7 @@ const Login = () => {
                         <label className="flex items-center gap-2">
                             <input type="checkbox" className="accent-amber-600" /> Remember me
                         </label>
-                        <a href="#" className="hover:text-amber-500 transition">Forgot Password?</a>
+                        <Link to="/forgot-password" className="hover:text-amber-500 transition">Forgot Password?</Link>
                     </div>
 
                     {/* Login Button */}

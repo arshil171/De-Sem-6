@@ -297,11 +297,6 @@ export const rejectBooking = async (req, res) => {
 }
 
 
-
-import bookingModel from "../models/bookingModel.js";
-import tractorModel from "../models/tractorModel.js";
-import { sendEmail } from "../utils/sendEmail.js";
-
 export const completeBooking = async (req, res) => {
     try {
         const { id } = req.params;
