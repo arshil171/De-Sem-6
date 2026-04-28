@@ -1,5 +1,5 @@
 import express from "express"
-import { deleteTractor, getMyTractor,  tractorAdd, updateTractor } from "../controllers/tractorController.js"
+import { deleteTractor, getMyTractor,  toggleAvailability,  tractorAdd, updateTractor } from "../controllers/tractorController.js"
 import { requireAuth, requireDriver } from "../middleware/authMiddleware.js"
 
 

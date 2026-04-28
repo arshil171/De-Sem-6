@@ -11,7 +11,7 @@ const bookingSchema = new mongoose.Schema(
     driverId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
-        required: true   // ✅ important (assigned from tractor)
+        required: true 
     },
 
     tractorId: {
@@ -20,7 +20,7 @@ const bookingSchema = new mongoose.Schema(
         required: true
     },
 
-    // 🧑‍🌾 Booking Details
+
     hours: {
         type: Number,
         required: true,
@@ -38,7 +38,7 @@ const bookingSchema = new mongoose.Schema(
         required: true
     },
 
-    // 💰 Pricing
+   
     pricePerHour: {
         type: Number,
         required: true
@@ -49,14 +49,14 @@ const bookingSchema = new mongoose.Schema(
         required: true
     },
 
-    // 📊 Status Tracking
+    
     status: {
         type: String,
         enum: ["pending", "accepted", "completed", "cancelled"],
         default: "pending"
     },
 
-    // ⏱️ Time Tracking (Important for future)
+    
     startTime: {
         type: Date
     },
@@ -65,7 +65,7 @@ const bookingSchema = new mongoose.Schema(
         type: Date
     },
 
-    // ⭐ Optional Rating System (future feature)
+  
     rating: {
         type: Number,
         min: 1,
