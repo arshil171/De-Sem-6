@@ -1,4 +1,4 @@
-import  tractorModel  from "../models/tractorModel.js"
+import tractorModel from "../models/tractorModel.js"
 
 
 // for driver
@@ -20,7 +20,7 @@ export const tractorAdd = async (req, res) => {
 
         })
 
-        res.status(200).json({
+        res.status(201).json({
             message: "Tractor Added successfully",
             data: tractor
         })
@@ -113,7 +113,7 @@ export const deleteTractor = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: "Tractor Updated SuccessFully",
+            message: "Tractor Deleted Successfully",
             data: deleteTractor
         })
     } catch (error) {
@@ -158,6 +158,13 @@ export const toggleAvailability = async (req, res) => {
                 success: false,
                 message: "Tractor not found"
             });
+        }
+
+        if (tractor.driverId.toString() !== req.user._id.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: "Unauthorized"
+            })
         }
 
         tractor.availability = !tractor.availability;

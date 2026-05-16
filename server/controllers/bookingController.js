@@ -52,6 +52,7 @@ export const createBooking = async (req, res) => {
             serviceType,
             farmLocation,
             totalPrice,
+            pricePerHour: tractor.pricePerHour,
             status: "pending",
         });
 
@@ -105,7 +106,7 @@ export const getDriverBooking = async (req, res) => {
                 status: "pending",
             })
             .populate("farmerId", "name phone email")
-            .populate("tractorId", "name price image");
+            .populate("tractorId", "tractorName pricePerHour")
 
 
         if (!bookings || bookings.length === 0) {
@@ -140,7 +141,7 @@ export const acceptBooking = async (req, res) => {
     try {
         const { id } = req.params;
 
-        if (!req.user || !req.use._id) {
+        if (!req.user || !req.user._id) {
             return res.status(401).json({
                 success: false,
                 message: "Unauthorized access",
@@ -154,7 +155,7 @@ export const acceptBooking = async (req, res) => {
             })
         }
 
-        const booking = await bookingModel.findById(id).populate("farmerId", "name email").populate("tractorid", "name availability")
+        const booking = await bookingModel.findById(id).populate("farmerId", "name email").populate("tractorId", "tractorName availability")
 
         if (!booking) {
             return res.status(404).json({
@@ -235,7 +236,7 @@ export const rejectBooking = async (req, res) => {
         const booking = await bookingModel
             .findById(id)
             .populate("farmerId", "name email")
-            .populate("tractorId", "name availability");
+            .populate("tractorId", "tractorName availability");
 
 
         if (!booking) {
@@ -302,7 +303,7 @@ export const completeBooking = async (req, res) => {
     try {
         const { id } = req.params;
 
-   
+
         if (!req.user || !req.user._id) {
             return res.status(401).json({
                 success: false,
@@ -310,7 +311,7 @@ export const completeBooking = async (req, res) => {
             });
         }
 
-        
+
         if (!id) {
             return res.status(400).json({
                 success: false,
@@ -318,11 +319,11 @@ export const completeBooking = async (req, res) => {
             });
         }
 
-  
+
         const booking = await bookingModel
             .findById(id)
             .populate("farmerId", "name email")
-            .populate("tractorId", "name");
+            .populate("tractorId", "tractorName");
 
         if (!booking) {
             return res.status(404).json({
@@ -338,7 +339,7 @@ export const completeBooking = async (req, res) => {
             });
         }
 
-       
+
         if (booking.status !== "accepted") {
             return res.status(400).json({
                 success: false,
@@ -346,20 +347,20 @@ export const completeBooking = async (req, res) => {
             });
         }
 
-      
+
         booking.status = "completed";
         booking.completedAt = new Date();
 
         await booking.save();
 
-   
+
         const tractor = await tractorModel.findById(booking.tractorId._id);
         if (tractor) {
             tractor.availability = true;
             await tractor.save();
         }
 
-        
+
         if (booking.farmerId?.email) {
             await sendEmail(
                 booking.farmerId.email,
@@ -368,7 +369,7 @@ export const completeBooking = async (req, res) => {
             );
         }
 
-  
+
         res.status(200).json({
             success: true,
             message: "Booking completed successfully & farmer notified",
@@ -385,3 +386,126 @@ export const completeBooking = async (req, res) => {
         });
     }
 };
+
+
+
+export const getFarmerBookings = async (req, res) => {
+    try {
+
+        const bookings = await bookingModel
+            .find({ farmerId: req.user._id })
+            .populate("tractorId")
+            .populate("driverId", "name email")
+
+        res.status(200).json({
+            success: true,
+            count: bookings.length,
+            data: bookings
+        })
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Server Error",
+            error: error.message
+        })
+    }
+}
+
+export const cancelBooking = async (req, res) => {
+    try {
+
+        const { id } = req.params
+
+        const booking = await bookingModel.findById(id)
+
+        if (!booking) {
+            return res.status(404).json({
+                success: false,
+                message: "Booking not found"
+            })
+        }
+
+        if (booking.farmerId.toString() !== req.user._id.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: "Unauthorized"
+            })
+        }
+
+
+
+        if (booking.status === "completed") {
+            return res.status(400).json({
+                success: false,
+                message: "Completed booking cannot be cancelled"
+            })
+        }
+
+        booking.status = "cancelled"
+
+        await booking.save()
+
+        // make tractor available again
+        const tractor = await tractorModel.findById(booking.tractorId)
+
+        if (tractor) {
+            tractor.availability = true
+            await tractor.save()
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Booking cancelled successfully",
+            data: booking
+        })
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Server Error",
+            error: error.message
+        })
+    }
+}
+
+export const addReview = async (req, res) => {
+    try {
+
+        const { rating, review } = req.body
+
+        const booking = await bookingModel.findById(req.params.id)
+
+        if (!booking) {
+            return res.status(404).json({
+                success: false,
+                message: "Booking not found"
+            })
+        }
+
+        if (booking.farmerId.toString() !== req.user._id.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: "Unauthorized"
+            })
+        }
+
+        booking.rating = rating
+        booking.review = review
+
+        await booking.save()
+
+        res.status(200).json({
+            success: true,
+            message: "Review added successfully",
+            data: booking
+        })
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Server Error",
+            error: error.message
+        })
+    }
+}

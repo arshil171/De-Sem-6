@@ -1,5 +1,5 @@
 import express from "express"
-import { deleteTractor, getMyTractor,  toggleAvailability,  tractorAdd, updateTractor } from "../controllers/tractorController.js"
+import { deleteTractor, getMyTractor,  getTractors,  toggleAvailability,  tractorAdd, updateTractor } from "../controllers/tractorController.js"
 import { requireAuth, requireDriver } from "../middleware/authMiddleware.js"
 
 
@@ -8,7 +8,8 @@ const tractorRoute = express.Router()
 // tractorRoute.get("/", async (req, res) => {
 //       res.send("hello user")
 // })
-
+// farmer can see all available tractors
+tractorRoute.get("/all", requireAuth, getTractors)
 tractorRoute.post("/addTractor", requireAuth, requireDriver, tractorAdd)
 tractorRoute.get("/getMyTractor", requireAuth, requireDriver, getMyTractor)
 tractorRoute.put("/updateTractor/:id", requireAuth, requireDriver, updateTractor)
