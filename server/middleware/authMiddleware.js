@@ -48,7 +48,7 @@ export const requireAdmin = (req, res, next) => {
 export const requireDriver = (req, res, next) => {
     if (req.user.role !== "driver") {
         return res.status(403).json({
-            message: "Admin access only"
+            message: "driver access only"
         })
     }
     next()

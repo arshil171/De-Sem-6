@@ -1,4 +1,4 @@
-import { tractorModel } from "../models/tractorModel.js"
+import  tractorModel  from "../models/tractorModel.js"
 
 
 // for driver
