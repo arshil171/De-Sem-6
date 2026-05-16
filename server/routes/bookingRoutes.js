@@ -30,7 +30,7 @@ bookingRoute.put("/reject/:id", requireAuth, requireDriver, rejectBooking);
 // complate Booking 
 bookingRoute.put("/complete/:id", requireAuth, requireDriver, completeBooking);
 
-// farmer routes
+// farmer routes 
 bookingRoute.get("/my", requireAuth, getFarmerBookings)
 
 bookingRoute.put("/cancel/:id", requireAuth, cancelBooking)
