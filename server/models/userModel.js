@@ -1,6 +1,6 @@
 import mongoose from "mongoose"
 
-const userSchema = mongoose.Schema({
+const userSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true
@@ -12,7 +12,7 @@ const userSchema = mongoose.Schema({
     },
     password: {
         type: String,
-      required: true
+        required: true
     },
     phone: {
         type: String,
@@ -23,6 +23,8 @@ const userSchema = mongoose.Schema({
         enum: ["farmer", "driver", "admin"],
         default: "farmer",
     },
+}, {
+    timestamps: true
 })
 
 export const userModel = mongoose.model("User", userSchema)

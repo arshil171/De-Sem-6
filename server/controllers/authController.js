@@ -9,13 +9,15 @@ export const register = async (req, res) => {
     try {
         let { name, email, password, role, phone } = req.body
 
-        password = await bcrypt.hash(password, 10)
+
 
         if (!name || !password || !email || !role || !phone) {
             return res.status(400).json({
                 message: "All fields are required"
             })
         }
+
+        password = await bcrypt.hash(password, 10)
 
         const existsUser = await userModel.findOne({ email })
         if (existsUser) {
@@ -57,7 +59,10 @@ export const forgotPassword = async (req, res) => {
     } else {
         let otp = Math.floor(100000 + Math.random() * 900000)
 
-        res.cookie("StoreOtp", otp)
+        res.cookie("StoreOtp", otp, {
+            httpOnly: true,
+            maxAge: 5 * 60 * 1000
+        })
 
         let transporter = nodemailer.createTransport({
             service: "gmail",
@@ -219,7 +224,7 @@ export const logout = (req, res) => {
     } catch (error) {
         return res.status(500).json({
             message: "Logout failed",
-            error
+            error : error.message
         });
     }
 };

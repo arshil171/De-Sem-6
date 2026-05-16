@@ -8,13 +8,14 @@ export const requireAuth = (req, res, next) => {
 
         if (!token) {
             return res.status(401).json({
-                message: "Authentication Require"
+                success: false,
+                message: "Authentication Required"
             })
         }
 
-        const decode = jwt.verify(token, process.env.JWT_SECRET)
+        const decoded = jwt.verify(token, process.env.JWT_SECRET)
 
-        if (!decode) {
+        if (!decoded) {
             return res.status(400).json({
                 message: "Token  is invalid"
             })
@@ -22,14 +23,15 @@ export const requireAuth = (req, res, next) => {
 
 
         req.user = {
-            _id: decode.id,
-            role: decode.role
+            _id: decoded.id,
+            role: decoded.role
 
         }
 
         next()
     } catch (error) {
         return res.status(401).json({
+            success: false,
             message: "Invalid or expired token"
         })
     }
@@ -38,6 +40,7 @@ export const requireAuth = (req, res, next) => {
 export const requireAdmin = (req, res, next) => {
     if (req.user.role !== "admin") {
         return res.status(403).json({
+            success: false,
             message: "Admin access only"
         })
     }
@@ -48,6 +51,7 @@ export const requireAdmin = (req, res, next) => {
 export const requireDriver = (req, res, next) => {
     if (req.user.role !== "driver") {
         return res.status(403).json({
+            success: false,
             message: "driver access only"
         })
     }
