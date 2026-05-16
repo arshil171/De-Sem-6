@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import loginImage from '../assets/images/image.png';
 import { Link, useNavigate } from 'react-router';
 import axios from "axios";
+import { useAuth } from '../context/AuthContext'
 
 const Login = () => {
    const [data, setData] = useState({ Email: "", Password: "", Name: "" });
@@ -9,6 +10,7 @@ const Login = () => {
     const [error, setError] = useState({});
 
     const navigate = useNavigate()
+    const { login }   = useAuth()
 
     async function handleSubmit(e) {
         e.preventDefault();
@@ -21,6 +23,14 @@ const Login = () => {
                     },
                     { withCredentials: true }
                 );
+
+                login(
+                  {
+                    name: res.data.user?.name || data.Name,
+                    role: res.data.role
+                  },
+                  res.data.token
+                )
 
                 localStorage.setItem("token", res.data.token);
                 alert(res.data.message);
