@@ -297,6 +297,7 @@ export const rejectBooking = async (req, res) => {
 }
 
 
+
 export const completeBooking = async (req, res) => {
     try {
         const { id } = req.params;
