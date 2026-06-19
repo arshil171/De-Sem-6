@@ -1,21 +1,20 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import axios from 'axios'
-import { MapPin, Clock, Tractor, Search, Filter, Star } from 'lucide-react'
+import { MapPin, Clock, Tractor, Search, Star } from 'lucide-react'
 
 const TractorList = () => {
-  const [tractors, setTractors]   = useState([])
-  const [filtered, setFiltered]   = useState([])
-  const [loading, setLoading]     = useState(true)
-  const [search, setSearch]       = useState('')
+  const [tractors, setTractors]     = useState([])
+  const [filtered, setFiltered]     = useState([])
+  const [loading, setLoading]       = useState(true)
+  const [search, setSearch]         = useState('')
   const [typeFilter, setTypeFilter] = useState('All')
-  const [error, setError]         = useState('')
+  const [error, setError]           = useState('')
 
   const types = ['All', 'Ploughing', 'Harvesting', 'Seeding', 'Spraying']
+  const BASE = import.meta.env.VITE_BASE_URL
 
-  useEffect(() => {
-    fetchTractors()
-  }, [])
+  useEffect(() => { fetchTractors() }, [])
 
   useEffect(() => {
     let result = tractors
@@ -32,10 +31,8 @@ const TractorList = () => {
   const fetchTractors = async () => {
     try {
       setLoading(true)
-      const res = await axios.get(
-        `${import.meta.env.VITE_BASE_URL}/tractorAdd/getTractors`,
-        { withCredentials: true }
-      )
+      // ✅ FIXED: /tractor/all (not /tractorAdd/getTractors)
+      const res = await axios.get(`${BASE}/tractor/all`, { withCredentials: true })
       setTractors(res.data.data)
       setFiltered(res.data.data)
     } catch (err) {
@@ -54,14 +51,10 @@ const TractorList = () => {
 
   return (
     <div className="min-h-screen bg-[#0a150a] text-green-100 pb-16">
-
-      {/* Header */}
       <div className="bg-[#111f11] border-b border-yellow-900/40 px-6 py-10">
         <div className="max-w-7xl mx-auto">
           <p className="text-yellow-600 text-xs font-bold uppercase tracking-widest mb-2">Browse Equipment</p>
           <h1 className="text-3xl font-black text-white mb-6">Available Tractors</h1>
-
-          {/* Search + Filter */}
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex items-center gap-3 flex-1 bg-[#0a150a] border-2 border-[#2d4a2d] focus-within:border-yellow-600 rounded-xl px-4 py-3 transition-colors">
               <Search className="w-4 h-4 text-[#6b8f6b] shrink-0" />
@@ -98,14 +91,10 @@ const TractorList = () => {
             <div className="w-10 h-10 border-4 border-yellow-600 border-t-transparent rounded-full animate-spin" />
           </div>
         )}
-
         {error && (
-          <div className="bg-red-950 border border-red-900 text-red-400 px-5 py-4 rounded-xl text-sm mb-6">
-            {error}
-          </div>
+          <div className="bg-red-950 border border-red-900 text-red-400 px-5 py-4 rounded-xl text-sm mb-6">{error}</div>
         )}
-
-        {!loading && filtered.length === 0 && (
+        {!loading && filtered.length === 0 && !error && (
           <div className="text-center py-24">
             <Tractor className="w-16 h-16 text-[#2d4a2d] mx-auto mb-4" />
             <p className="text-[#4b6b4b] text-lg font-semibold">No tractors found</p>
@@ -119,7 +108,6 @@ const TractorList = () => {
               key={tractor._id}
               className="bg-[#111f11] border border-[#1f3a1f] hover:border-yellow-800 rounded-2xl p-6 flex flex-col gap-4 transition-all duration-300 group"
             >
-              {/* Top */}
               <div className="flex items-start justify-between">
                 <div className="w-12 h-12 bg-[#1a2e1a] border border-[#2d4a2d] group-hover:border-yellow-800 rounded-xl flex items-center justify-center transition-colors">
                   <Tractor className="w-6 h-6 text-yellow-500" />
@@ -128,17 +116,12 @@ const TractorList = () => {
                   {tractor.tractorType}
                 </span>
               </div>
-
-              {/* Info */}
               <div>
                 <h3 className="text-white font-bold text-lg leading-tight">{tractor.tractorName}</h3>
                 <div className="flex items-center gap-1.5 mt-1.5 text-green-600 text-sm">
-                  <MapPin className="w-3.5 h-3.5 text-yellow-700" />
-                  {tractor.location}
+                  <MapPin className="w-3.5 h-3.5 text-yellow-700" />{tractor.location}
                 </div>
               </div>
-
-              {/* Driver */}
               <div className="flex items-center gap-2 bg-[#0d1a0d] rounded-lg px-3 py-2">
                 <div className="w-7 h-7 rounded-full bg-yellow-700 flex items-center justify-center text-[#0a150a] text-xs font-extrabold">
                   {tractor.driverId?.name?.charAt(0).toUpperCase()}
@@ -152,8 +135,6 @@ const TractorList = () => {
                   <span className="text-yellow-400 text-xs font-bold">4.8</span>
                 </div>
               </div>
-
-              {/* Price + max hours */}
               <div className="flex items-center justify-between border-t border-[#1f3a1f] pt-3">
                 <div>
                   <span className="text-yellow-400 text-xl font-black">₹{tractor.pricePerHour}</span>
@@ -161,11 +142,9 @@ const TractorList = () => {
                 </div>
                 <div className="flex items-center gap-1 text-[#4b6b4b] text-xs">
                   <Clock className="w-3.5 h-3.5" />
-                  Max {tractor.maxHoursPerBooking}h
+                  Max {tractor.maxHoursPerBooking || 8}h
                 </div>
               </div>
-
-              {/* Book Button */}
               <Link
                 to={`/book-tractor/${tractor._id}`}
                 className="w-full py-3 bg-yellow-600 hover:bg-yellow-500 text-[#0a150a] font-extrabold text-sm rounded-xl text-center transition-colors duration-200"
