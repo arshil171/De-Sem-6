@@ -7,8 +7,8 @@ import authRoute from "./routes/authRoutes.js";
 import cookieParser from "cookie-parser";
 import tractorRoute from "./routes/tractorRoutes.js";
 import bookingRoute from "./routes/bookingRoutes.js";
-
-
+import productRoute from "./routes/productRoutes.js";
+import cartRoute    from "./routes/cartRoutes.js";
 
 const app = express();
 const PORT = 8080;
@@ -24,7 +24,8 @@ app.use(cookieParser());
 app.use("/auth", authRoute)
 app.use("/tractor", tractorRoute)
 app.use("/booking", bookingRoute)
-
+app.use("/product", productRoute)   
+app.use("/cart",    cartRoute)
 
 app.listen(PORT, (err) => {
     if (err) {
