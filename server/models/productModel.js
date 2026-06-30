@@ -7,6 +7,10 @@ const productSchema = new mongoose.Schema(
       required: true,
       trim: true
     },
+    description: {
+      type: String,
+      default: ""
+    },
     price: {
       type: Number,
       required: true,
@@ -16,6 +20,10 @@ const productSchema = new mongoose.Schema(
       type: String,
       required: true,
       enum: ["seeds", "fertilizer", "tools", "equipment"]
+    },
+    image: {
+      type: String,
+      default: ""
     },
     stock: {
       type: Number,

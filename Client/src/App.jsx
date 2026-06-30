@@ -31,6 +31,8 @@ import ForgotPassword from './pages/ForgotPassword'
 import TractorList    from './pages/TractorList'
 import BookTractor    from './pages/BookTractor'
 import MyBookings     from './pages/MyBookings'
+import Marketplace    from './pages/Marketplace'  
+import Cart           from './pages/Cart'
 import OwnerDashboard from './owner/OwnerDashboard'
 import AddTractor     from './owner/AddTractor'
 import Navbar         from './components/Navbar'
@@ -54,6 +56,8 @@ const App = () => {
       <Route path='/tractors'        element={<Layout><TractorList /></Layout>} />
       <Route path='/book-tractor/:id' element={<Layout><BookTractor /></Layout>} />
       <Route path='/my-bookings'     element={<Layout><MyBookings /></Layout>} />
+      <Route path='/marketplace'       element={<Layout><Marketplace /></Layout>} />
+      <Route path='/cart'              element={<Layout><Cart /></Layout>} />
 
       {/* Driver routes */}
       <Route path='/owner/dashboard'  element={<Layout><OwnerDashboard /></Layout>} />
