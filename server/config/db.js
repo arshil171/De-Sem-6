@@ -3,13 +3,24 @@ import mongoose from "mongoose";
 
 const dbConnect = async () => {
     try {
-        await mongoose.connect(process.env.MONGO_URL, {
-            tls: true,
-            tlsAllowInvalidCertificates: true,
-        });
+        await mongoose.connect(
+            process.env.MONGO_URL,
+            {
+                tls: true,
+                tlsAllowInvalidCertificates: true
+            }
+        );
+
         console.log("DataBase Connected");
+
     } catch (error) {
-        console.log(" DB Error:", error.message);
+        console.log(
+            "DB Error:",
+            error.message
+        );
+
+        throw error;
     }
 };
+
 export default dbConnect;
