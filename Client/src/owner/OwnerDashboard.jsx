@@ -4,7 +4,8 @@ import axios from 'axios'
 import {
   Tractor, MapPin, Plus, Pencil, Trash2,
   ToggleLeft, ToggleRight, CheckCircle2,
-  X, Phone, User, Clock, Check, XCircle, Flag
+  X, Phone, User, Clock, Check, XCircle, Flag,
+  Star, Calendar
 } from 'lucide-react'
 
 const OwnerDashboard = () => {
@@ -20,6 +21,14 @@ const OwnerDashboard = () => {
   const [updating, setUpdating]           = useState(false)
   const [deleteId, setDeleteId]           = useState(null)
   const [actionLoading, setActionLoading] = useState('')
+  const [bookingFilter, setBookingFilter] = useState('all')
+
+  const statusConfig = {
+    pending:   { label: 'Pending',   cls: 'bg-yellow-900/50 text-yellow-300 border-yellow-800' },
+    accepted:  { label: 'Accepted',  cls: 'bg-green-900/50  text-green-300  border-green-800' },
+    completed: { label: 'Completed', cls: 'bg-blue-900/50   text-blue-300   border-blue-800' },
+    cancelled: { label: 'Cancelled', cls: 'bg-red-950/50    text-red-400    border-red-900' },
+  }
 
   const tractorTypes = ['Ploughing', 'Harvesting', 'Seeding', 'Spraying']
   const BASE = import.meta.env.VITE_BASE_URL
@@ -46,9 +55,10 @@ const OwnerDashboard = () => {
   const fetchDriverBookings = async () => {
     try {
       const res = await axios.get(`${BASE}/booking/driver`, { withCredentials: true })
-      setBookings(res.data.data)
-    } catch { }
-    finally { setLoadingB(false) }
+      setBookings(res.data.data || [])
+    } catch (err) {
+      flash(err.response?.data?.message || 'Failed to load bookings.', true)
+    } finally { setLoadingB(false) }
   }
 
   const handleToggle = async (id) => {
@@ -101,10 +111,16 @@ const OwnerDashboard = () => {
     setActionLoading(id + action)
     try {
       await axios.put(`${BASE}/booking/${action}/${id}`, {}, { withCredentials: true })
-      setBookings(prev => prev.filter(b => b._id !== id))
-      flash(`Booking ${action}ed successfully!`)
+      
+      let newStatus = 'pending'
+      if (action === 'accept') newStatus = 'accepted'
+      else if (action === 'reject') newStatus = 'cancelled'
+      else if (action === 'complete') newStatus = 'completed'
+
+      setBookings(prev => prev.map(b => b._id === id ? { ...b, status: newStatus } : b))
+      flash(`Booking status updated to ${newStatus}!`)
     } catch (err) {
-      flash(err.response?.data?.message || `Failed to ${action} booking.`, true)
+      flash(err.response?.data?.message || `Failed to update booking status.`, true)
     } finally { setActionLoading('') }
   }
 
@@ -129,17 +145,20 @@ const OwnerDashboard = () => {
           </Link>
         </div>
         <div className="max-w-6xl mx-auto flex gap-2 mt-6">
-          {['tractors', 'bookings'].map(tab => (
-            <button key={tab} onClick={() => setActiveTab(tab)}
-              className={`px-5 py-2 rounded-xl text-sm font-bold capitalize transition-all ${
-                activeTab === tab ? 'bg-yellow-600 text-[#0a150a]' : 'bg-[#1f3a1f] text-green-400 hover:bg-[#2d4a2d]'
-              }`}>
-              {tab}
-              {tab === 'bookings' && bookings.length > 0 && (
-                <span className="ml-2 bg-red-600 text-white text-xs rounded-full px-1.5 py-0.5">{bookings.length}</span>
-              )}
-            </button>
-          ))}
+          {['tractors', 'bookings'].map(tab => {
+            const activeBookingsCount = bookings.filter(b => b.status === 'pending' || b.status === 'accepted').length
+            return (
+              <button key={tab} onClick={() => setActiveTab(tab)}
+                className={`px-5 py-2 rounded-xl text-sm font-bold capitalize transition-all ${
+                  activeTab === tab ? 'bg-yellow-600 text-[#0a150a]' : 'bg-[#1f3a1f] text-green-400 hover:bg-[#2d4a2d]'
+                }`}>
+                {tab}
+                {tab === 'bookings' && activeBookingsCount > 0 && (
+                  <span className="ml-2 bg-red-600 text-white text-xs rounded-full px-1.5 py-0.5">{activeBookingsCount}</span>
+                )}
+              </button>
+            )
+          })}
         </div>
       </div>
 
@@ -206,92 +225,126 @@ const OwnerDashboard = () => {
         {/* ── BOOKINGS TAB ── */}
         {activeTab === 'bookings' && (
           <>
+            <div className="flex gap-2 flex-wrap mb-6">
+              {['all', 'pending', 'accepted', 'completed', 'cancelled'].map(f => (
+                <button key={f} onClick={() => setBookingFilter(f)}
+                  className={`px-4 py-1.5 rounded-full text-xs font-bold capitalize transition-all ${
+                    bookingFilter === f ? 'bg-yellow-600 text-[#0a150a]' : 'bg-[#1f3a1f] text-green-400 hover:bg-[#2d4a2d]'
+                  }`}>
+                  {f} <span className="ml-1 opacity-60">({bookings.filter(b => f === 'all' || b.status === f).length})</span>
+                </button>
+              ))}
+            </div>
+
             {loadingB && <div className="flex justify-center py-20"><div className="w-10 h-10 border-4 border-yellow-600 border-t-transparent rounded-full animate-spin" /></div>}
-            {!loadingB && bookings.length === 0 && (
+            
+            {!loadingB && bookings.filter(b => bookingFilter === 'all' || b.status === bookingFilter).length === 0 && (
               <div className="text-center py-24">
-                <CheckCircle2 className="w-16 h-16 text-[#2d4a2d] mx-auto mb-4" />
-                <p className="text-[#4b6b4b] text-lg font-semibold">No pending bookings</p>
-                <p className="text-[#3a5a3a] text-sm mt-1">New requests will appear here</p>
+                {bookingFilter === 'pending' || bookingFilter === 'all' ? (
+                  <CheckCircle2 className="w-16 h-16 text-[#2d4a2d] mx-auto mb-4" />
+                ) : (
+                  <Calendar className="w-16 h-16 text-[#2d4a2d] mx-auto mb-4" />
+                )}
+                <p className="text-[#4b6b4b] text-lg font-semibold">No {bookingFilter !== 'all' ? bookingFilter : ''} bookings</p>
+                {bookingFilter === 'all' && <p className="text-[#3a5a3a] text-sm mt-1">New requests will appear here</p>}
               </div>
             )}
+
             <div className="space-y-4">
-              {bookings.map(booking => (
-                <div key={booking._id} className="bg-[#111f11] border border-[#1f3a1f] rounded-2xl p-6">
-                  <div className="flex items-start justify-between mb-4 flex-wrap gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-11 h-11 bg-yellow-600 rounded-xl flex items-center justify-center shrink-0">
-                        <Tractor className="w-5 h-5 text-[#0a150a]" />
+              {bookings
+                .filter(b => bookingFilter === 'all' || b.status === bookingFilter)
+                .map(booking => (
+                  <div key={booking._id} className="bg-[#111f11] border border-[#1f3a1f] rounded-2xl p-6">
+                    <div className="flex items-start justify-between mb-4 flex-wrap gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-11 h-11 bg-yellow-600 rounded-xl flex items-center justify-center shrink-0">
+                          <Tractor className="w-5 h-5 text-[#0a150a]" />
+                        </div>
+                        <div>
+                          <h3 className="text-white font-bold">{booking.tractorId?.tractorName || 'Tractor'}</h3>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${typeColors[booking.serviceType] || 'bg-green-900/50 text-green-300'}`}>
+                            {booking.serviceType}
+                          </span>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="text-white font-bold">{booking.tractorId?.tractorName || 'Tractor'}</h3>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${typeColors[booking.serviceType] || 'bg-green-900/50 text-green-300'}`}>
-                          {booking.serviceType}
+                      <div className="text-right flex flex-col items-end">
+                        <p className="text-yellow-400 text-xl font-black">₹{booking.totalPrice}</p>
+                        <p className="text-[#4b6b4b] text-xs mb-1.5">{booking.hours}h × ₹{booking.pricePerHour}/hr</p>
+                        <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${statusConfig[booking.status]?.cls || 'border-[#1f3a1f] text-green-400'}`}>
+                          {statusConfig[booking.status]?.label || booking.status}
                         </span>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-yellow-400 text-xl font-black">₹{booking.totalPrice}</p>
-                      <p className="text-[#4b6b4b] text-xs">{booking.hours}h × ₹{booking.pricePerHour}/hr</p>
-                    </div>
-                  </div>
-                  <div className="bg-[#0d1a0d] rounded-xl p-4 mb-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div className="flex items-center gap-2">
-                      <User className="w-4 h-4 text-yellow-700 shrink-0" />
-                      <div>
-                        <p className="text-[#4b6b4b] text-[10px] uppercase tracking-wide">Farmer</p>
-                        <p className="text-green-300 text-sm font-semibold">{booking.farmerId?.name}</p>
+                    <div className="bg-[#0d1a0d] rounded-xl p-4 mb-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4 text-yellow-700 shrink-0" />
+                        <div>
+                          <p className="text-[#4b6b4b] text-[10px] uppercase tracking-wide">Farmer</p>
+                          <p className="text-green-300 text-sm font-semibold">{booking.farmerId?.name}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Phone className="w-4 h-4 text-yellow-700 shrink-0" />
+                        <div>
+                          <p className="text-[#4b6b4b] text-[10px] uppercase tracking-wide">Phone</p>
+                          <p className="text-green-300 text-sm font-semibold">{booking.farmerId?.phone || '—'}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-yellow-700 shrink-0" />
+                        <div>
+                          <p className="text-[#4b6b4b] text-[10px] uppercase tracking-wide">Location</p>
+                          <p className="text-green-300 text-sm font-semibold">{booking.farmLocation}</p>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Phone className="w-4 h-4 text-yellow-700 shrink-0" />
-                      <div>
-                        <p className="text-[#4b6b4b] text-[10px] uppercase tracking-wide">Phone</p>
-                        <p className="text-green-300 text-sm font-semibold">{booking.farmerId?.phone || '—'}</p>
+
+                    {booking.rating && (
+                      <div className="bg-[#0d1a0d] rounded-xl p-4 mb-4">
+                        <div className="flex items-center gap-1 mb-1">
+                          {Array.from({ length: booking.rating }).map((_, i) => (
+                            <Star key={i} className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
+                          ))}
+                        </div>
+                        {booking.review && <p className="text-green-400 text-xs italic">"{booking.review}"</p>}
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-yellow-700 shrink-0" />
-                      <div>
-                        <p className="text-[#4b6b4b] text-[10px] uppercase tracking-wide">Location</p>
-                        <p className="text-green-300 text-sm font-semibold">{booking.farmLocation}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4 text-xs text-[#4b6b4b] mb-4">
-                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {booking.hours} hours</span>
-                    <span>{new Date(booking.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-                  </div>
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    {booking.status === 'pending' && (
-                      <>
-                        <button onClick={() => handleBookingAction(booking._id, 'accept')}
-                          disabled={actionLoading === booking._id + 'accept'}
-                          className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-green-700 hover:bg-green-600 text-white text-sm font-bold transition-colors disabled:opacity-50">
-                          {actionLoading === booking._id + 'accept'
-                            ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                            : <><Check className="w-4 h-4" /> Accept Booking</>}
-                        </button>
-                        <button onClick={() => handleBookingAction(booking._id, 'reject')}
-                          disabled={actionLoading === booking._id + 'reject'}
-                          className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-red-800 hover:bg-red-700 text-white text-sm font-bold transition-colors disabled:opacity-50">
-                          {actionLoading === booking._id + 'reject'
-                            ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                            : <><XCircle className="w-4 h-4" /> Reject</>}
-                        </button>
-                      </>
                     )}
-                    {booking.status === 'accepted' && (
-                      <button onClick={() => handleBookingAction(booking._id, 'complete')}
-                        disabled={actionLoading === booking._id + 'complete'}
-                        className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-yellow-600 hover:bg-yellow-500 text-[#0a150a] text-sm font-extrabold transition-colors disabled:opacity-50">
-                        {actionLoading === booking._id + 'complete'
-                          ? <span className="w-4 h-4 border-2 border-[#0a150a] border-t-transparent rounded-full animate-spin" />
-                          : <><Flag className="w-4 h-4" /> Mark as Completed</>}
-                      </button>
-                    )}
+
+                    <div className="flex items-center gap-4 text-xs text-[#4b6b4b] mb-4">
+                      <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {booking.hours} hours</span>
+                      <span>{new Date(booking.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      {booking.status === 'pending' && (
+                        <>
+                          <button onClick={() => handleBookingAction(booking._id, 'accept')}
+                            disabled={actionLoading === booking._id + 'accept'}
+                            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-green-700 hover:bg-green-600 text-white text-sm font-bold transition-colors disabled:opacity-50">
+                            {actionLoading === booking._id + 'accept'
+                              ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                              : <><Check className="w-4 h-4" /> Accept Booking</>}
+                          </button>
+                          <button onClick={() => handleBookingAction(booking._id, 'reject')}
+                            disabled={actionLoading === booking._id + 'reject'}
+                            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-red-800 hover:bg-red-700 text-white text-sm font-bold transition-colors disabled:opacity-50">
+                            {actionLoading === booking._id + 'reject'
+                              ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                              : <><XCircle className="w-4 h-4" /> Reject</>}
+                          </button>
+                        </>
+                      )}
+                      {booking.status === 'accepted' && (
+                        <button onClick={() => handleBookingAction(booking._id, 'complete')}
+                          disabled={actionLoading === booking._id + 'complete'}
+                          className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-yellow-600 hover:bg-yellow-500 text-[#0a150a] text-sm font-extrabold transition-colors disabled:opacity-50">
+                          {actionLoading === booking._id + 'complete'
+                            ? <span className="w-4 h-4 border-2 border-[#0a150a] border-t-transparent rounded-full animate-spin" />
+                            : <><Flag className="w-4 h-4" /> Mark as Completed</>}
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
           </>
         )}

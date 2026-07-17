@@ -12,6 +12,7 @@ import Marketplace    from "./pages/Marketplace";
 import Cart           from "./pages/Cart";
 import OwnerDashboard from "./owner/OwnerDashboard";
 import AddTractor     from "./owner/AddTractor";
+import AddProduct     from "./owner/AddProduct";
 import AdminDashboard from "./admin/AdminDashboard";  
 import Navbar         from "./components/Navbar";
 import Footer         from "./components/Footer";
@@ -44,6 +45,7 @@ const App = () => {
       {/* Driver */}
       <Route path="/owner/dashboard"   element={<Layout><OwnerDashboard /></Layout>} />
       <Route path="/owner/add-tractor" element={<Layout><AddTractor /></Layout>} />
+      <Route path="/owner/add-product" element={<Layout><AddProduct /></Layout>} />
 
       {/* Admin */}
       <Route path="/admin/dashboard"   element={<AdminDashboard />} />

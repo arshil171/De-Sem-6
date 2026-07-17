@@ -1,5 +1,5 @@
 import express from "express"
-import { deleteTractor, getMyTractor,  getTractors,  toggleAvailability,  tractorAdd, updateTractor } from "../controllers/tractorController.js"
+import { deleteTractor, getMyTractor, getTractorById, getTractors,  toggleAvailability,  tractorAdd, updateTractor } from "../controllers/tractorController.js"
 import { requireAuth, requireDriver } from "../middleware/authMiddleware.js"
 
 
@@ -15,6 +15,8 @@ tractorRoute.get("/getMyTractor", requireAuth, requireDriver, getMyTractor)
 tractorRoute.put("/updateTractor/:id", requireAuth, requireDriver, updateTractor)
 tractorRoute.delete("/deleteTractor/:id", requireAuth, requireDriver, deleteTractor)
 tractorRoute.put("/toggle/:id", requireAuth, requireDriver, toggleAvailability)
+// single tractor by id (farmer booking page)
+tractorRoute.get("/:id", requireAuth, getTractorById)
 
 
 export default tractorRoute

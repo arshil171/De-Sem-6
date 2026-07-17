@@ -7,7 +7,7 @@ import { signInWithPopup } from "firebase/auth";
 import { auth, provider } from "../config/Firebase";
 
 const Login = () => {
-  const [data, setData] = useState({ Name: "", Email: "", Password: "" });
+  const [data, setData] = useState({ Email: "", Password: "" });
   const [error, setError] = useState({});
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -22,12 +22,12 @@ const Login = () => {
     try {
       const res = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/auth/login`,
-        { name: data.Name, email: data.Email, password: data.Password },
+        { email: data.Email, password: data.Password },
         { withCredentials: true }
       );
 
       const userRole = res.data.role;
-      const userName = res.data.user?.name || data.Name;
+      const userName = res.data.user?.name || "User";
 
       login({ name: userName, role: userRole }, res.data.token);
 
@@ -60,7 +60,6 @@ const Login = () => {
   function validation() {
     let obj = {};
     let value = true;
-    if (!data.Name.trim())     { value = false; obj.name     = "Enter your Name"; }
     if (!data.Email.trim())    { value = false; obj.email    = "Enter a valid Email"; }
     if (!data.Password.trim()) { value = false; obj.password = "Enter your Password"; }
     setError(obj);
@@ -76,20 +75,6 @@ const Login = () => {
         <h2 className="text-3xl font-semibold text-center mb-6 text-gray-800">Login</h2>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-
-          {/* Name */}
-          <div className="relative">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
-              className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-600 w-5 h-5">
-              <path fillRule="evenodd" d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z" clipRule="evenodd"/>
-            </svg>
-            <input
-              type="text" placeholder="Enter your Name" value={data.Name}
-              onChange={(e) => setData({ ...data, Name: e.target.value })}
-              className="w-full pl-10 pr-3 py-3 border rounded-lg border-gray-400 focus:ring-2 focus:ring-amber-400 outline-none transition"
-            />
-          </div>
-          {error.name && <p className="text-red-600 text-sm -mt-2">{error.name}</p>}
 
           {/* Email */}
           <div className="relative">

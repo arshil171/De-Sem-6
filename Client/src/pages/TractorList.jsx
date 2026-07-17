@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import axios from 'axios'
 import { MapPin, Clock, Tractor, Search, Star } from 'lucide-react'
 
@@ -12,6 +12,7 @@ const TractorList = () => {
   const [error, setError]           = useState('')
 
   const types = ['All', 'Ploughing', 'Harvesting', 'Seeding', 'Spraying']
+  const navigate = useNavigate()
   const BASE = import.meta.env.VITE_BASE_URL
 
   useEffect(() => { fetchTractors() }, [])
@@ -36,7 +37,11 @@ const TractorList = () => {
       setTractors(res.data.data)
       setFiltered(res.data.data)
     } catch (err) {
-      setError('Failed to load tractors.')
+      if (err.response?.status === 401) {
+        navigate('/login')
+      } else {
+        setError('Failed to load tractors.')
+      }
     } finally {
       setLoading(false)
     }

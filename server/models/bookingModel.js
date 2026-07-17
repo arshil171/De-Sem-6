@@ -74,6 +74,18 @@ const bookingSchema = new mongoose.Schema(
 
     review: {
         type: String
+    },
+
+    acceptedAt: {
+        type: Date
+    },
+
+    rejectedAt: {
+        type: Date
+    },
+
+    completedAt: {
+        type: Date
     }
 
 },

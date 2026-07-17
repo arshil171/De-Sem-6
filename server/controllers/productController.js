@@ -1,6 +1,6 @@
 import { productModel } from "../models/productModel.js"
 
-// Admin: create product
+// Admin or Driver: create product
 export const createProduct = async (req, res) => {
   try {
     const { name, description, price, category, stock, image } = req.body
@@ -9,7 +9,18 @@ export const createProduct = async (req, res) => {
       return res.status(400).json({ success: false, message: "All fields are required" })
     }
 
-    const product = await productModel.create({ name, description, price, category, stock, image })
+    // Set sellerId only if the creator is a driver
+    const sellerId = req.user.role === "driver" ? req.user._id : null
+
+    const product = await productModel.create({
+      name,
+      description,
+      price,
+      category,
+      stock,
+      image,
+      sellerId
+    })
 
     res.status(201).json({ success: true, message: "Product created successfully", data: product })
   } catch (error) {
@@ -45,22 +56,46 @@ export const getProduct = async (req, res) => {
   }
 }
 
-// Admin: update product
-export const updateProduct = async (req, res) => {
+// Get products added by the current driver
+export const getSellerProducts = async (req, res) => {
   try {
-    const product = await productModel.findByIdAndUpdate(req.params.id, req.body, { new: true })
-    if (!product) return res.status(404).json({ success: false, message: "Product not found" })
-    res.status(200).json({ success: true, message: "Product updated", data: product })
+    const products = await productModel.find({ sellerId: req.user._id }).sort({ createdAt: -1 })
+    res.status(200).json({ success: true, count: products.length, data: products })
   } catch (error) {
     res.status(500).json({ success: false, message: "Server Error", error: error.message })
   }
 }
 
-//Admin: delete product
+// Admin or Driver: update product
+export const updateProduct = async (req, res) => {
+  try {
+    const product = await productModel.findById(req.params.id)
+    if (!product) return res.status(404).json({ success: false, message: "Product not found" })
+
+    // If driver, check ownership
+    if (req.user.role === "driver" && String(product.sellerId) !== String(req.user._id)) {
+      return res.status(403).json({ success: false, message: "Not authorized to update this product" })
+    }
+
+    const updatedProduct = await productModel.findByIdAndUpdate(req.params.id, req.body, { new: true })
+    res.status(200).json({ success: true, message: "Product updated", data: updatedProduct })
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server Error", error: error.message })
+  }
+}
+
+// Admin or Driver: delete product
 export const deleteProduct = async (req, res) => {
   try {
-    const product = await productModel.findByIdAndDelete(req.params.id)
+    const product = await productModel.findById(req.params.id)
     if (!product) return res.status(404).json({ success: false, message: "Product not found" })
+
+    // If driver, check ownership
+    if (req.user.role === "driver" && String(product.sellerId) !== String(req.user._id)) {
+      return res.status(403).json({ success: false, message: "Not authorized to delete this product" })
+    }
+
+    await productModel.findByIdAndDelete(req.params.id)
     res.status(200).json({ success: true, message: "Product deleted" })
   } catch (error) {
     res.status(500).json({ success: false, message: "Server Error", error: error.message })

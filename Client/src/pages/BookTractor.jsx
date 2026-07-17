@@ -21,10 +21,8 @@ const BookTractor = () => {
 
   const fetchTractor = async () => {
     try {
-      // ✅ FIXED: /tractor/all
-      const res = await axios.get(`${BASE}/tractor/all`, { withCredentials: true })
-      const found = res.data.data.find(t => t._id === id)
-      setTractor(found)
+      const res = await axios.get(`${BASE}/tractor/${id}`, { withCredentials: true })
+      setTractor(res.data.data)
     } catch {
       setError('Failed to load tractor details.')
     } finally {

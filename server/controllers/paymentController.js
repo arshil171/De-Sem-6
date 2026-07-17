@@ -1,7 +1,10 @@
 import crypto from "crypto"
+import dotenv from "dotenv"
+dotenv.config()
 import razorpayInstance from "../config/razorpay.js"
 import { orderModel } from "../models/orderModel.js"
 import { cartModel }  from "../models/cartModel.js"
+import { productModel } from "../models/productModel.js"
 
 // ── Step 1: Create Razorpay Order ────────────────────────────────
 export const createOrder = async (req, res) => {
@@ -14,24 +17,60 @@ export const createOrder = async (req, res) => {
       return res.status(400).json({ success: false, message: "Cart is empty" })
     }
 
-    const amountInPaise = Math.round(cart.totalPrice * 100)
+    // Guard: filter out any cart items whose product was deleted from DB
+    const validItems = cart.items.filter(item => item.productId !== null)
 
+    if (validItems.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "All cart items are unavailable. Please update your cart."
+      })
+    }
+
+    // Check stock availability before creating order
+    for (const item of validItems) {
+      if (item.productId.stock < item.quantity) {
+        return res.status(400).json({
+          success: false,
+          message: `Insufficient stock for "${item.productId.name}". Only ${item.productId.stock} left.`
+        })
+      }
+    }
+
+    // Recalculate total from valid items (don't trust stored totalPrice)
+    const totalPrice    = validItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
+    const amountInPaise = Math.round(totalPrice * 100)
+
+    if (amountInPaise < 100) {
+      return res.status(400).json({ success: false, message: "Minimum order amount is ₹1" })
+    }
+
+    // Safety: ensure Razorpay keys are configured
+    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_SECRET_ID) {
+      console.error("❌ Razorpay keys missing! Check .env file.")
+      return res.status(500).json({
+        success: false,
+        message: "Payment gateway not configured. Contact support."
+      })
+    }
+
+    // Create Razorpay order
     const razorpayOrder = await razorpayInstance.orders.create({
       amount:   amountInPaise,
       currency: "INR",
-      receipt:  `receipt_${req.user._id}_${Date.now()}`,
+      receipt:  `rcpt_${req.user._id.toString().slice(-8)}_${Date.now()}`,
     })
 
-    // Save order in DB with status "created"
+    // Save pending order in DB
     const order = await orderModel.create({
       userId:          req.user._id,
-      items:           cart.items.map(item => ({
+      items:           validItems.map(item => ({
         productId: item.productId._id,
         name:      item.productId.name,
         price:     item.price,
         quantity:  item.quantity
       })),
-      totalAmount:     cart.totalPrice,
+      totalAmount:     totalPrice,
       razorpayOrderId: razorpayOrder.id,
       status:          "created"
     })
@@ -48,7 +87,13 @@ export const createOrder = async (req, res) => {
     })
   } catch (error) {
     console.error("Create Order Error:", error)
-    res.status(500).json({ success: false, message: "Failed to create order", error: error.message })
+    // Surface Razorpay API error detail to the frontend for better debugging
+    const message =
+      error?.error?.description ||
+      error?.response?.data?.description ||
+      error?.message ||
+      "Failed to create order"
+    res.status(500).json({ success: false, message, error: error.message })
   }
 }
 
@@ -57,24 +102,49 @@ export const verifyPayment = async (req, res) => {
   try {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature, dbOrderId } = req.body
 
-    // Verify signature
-    const body      = razorpay_order_id + "|" + razorpay_payment_id
-    const expected  = crypto
+    // Validate all required fields
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature || !dbOrderId) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required payment verification fields"
+      })
+    }
+
+    // Verify Razorpay signature
+    const body     = razorpay_order_id + "|" + razorpay_payment_id
+    const expected = crypto
       .createHmac("sha256", process.env.RAZORPAY_SECRET_ID)
       .update(body)
       .digest("hex")
 
     if (expected !== razorpay_signature) {
       await orderModel.findByIdAndUpdate(dbOrderId, { status: "failed" })
-      return res.status(400).json({ success: false, message: "Payment verification failed" })
+      return res.status(400).json({
+        success: false,
+        message: "Payment verification failed. Invalid signature."
+      })
     }
 
-    // Update order status to paid
+    // Fetch order to get items for stock decrement
+    const order = await orderModel.findById(dbOrderId)
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found" })
+    }
+
+    // Mark order as paid
     await orderModel.findByIdAndUpdate(dbOrderId, {
       razorpayPaymentId: razorpay_payment_id,
       razorpaySignature: razorpay_signature,
       status:            "paid"
     })
+
+    // ✅ Decrement stock for each purchased item (prevent overselling)
+    for (const item of order.items) {
+      await productModel.findByIdAndUpdate(
+        item.productId,
+        { $inc: { stock: -item.quantity } }
+      )
+    }
 
     // Clear the cart
     await cartModel.findOneAndUpdate(
@@ -89,7 +159,11 @@ export const verifyPayment = async (req, res) => {
     })
   } catch (error) {
     console.error("Verify Payment Error:", error)
-    res.status(500).json({ success: false, message: "Server Error", error: error.message })
+    res.status(500).json({
+      success: false,
+      message: "Payment verification error",
+      error: error.message
+    })
   }
 }
 

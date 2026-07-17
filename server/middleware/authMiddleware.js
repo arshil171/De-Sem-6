@@ -57,3 +57,13 @@ export const requireDriver = (req, res, next) => {
     }
     next()
 }
+
+export const requireAdminOrDriver = (req, res, next) => {
+    if (req.user.role !== "admin" && req.user.role !== "driver") {
+        return res.status(403).json({
+            success: false,
+            message: "Access restricted to admins and drivers"
+        })
+    }
+    next()
+}
