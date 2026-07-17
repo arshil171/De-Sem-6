@@ -306,23 +306,14 @@ const Register = () => {
             </div>
 
             {/* Buttons */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 pt-6">
+            <div className="flex flex-col items-start  sm:items-center gap-4 pt-6">
               <button
                 type="submit"
                 disabled={loading}
-                className="px-8 py-3 w-full sm:w-auto rounded-full text-white font-semibold shadow-lg transition bg-green-600 hover:bg-green-700 transform hover:scale-[1.02] disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
+                className="px-8 py-3 w-full cursor-pointer sm:w-auto rounded-full text-white font-semibold shadow-lg transition bg-green-600 hover:bg-green-700 transform hover:scale-[1.02] disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
                 {loading ? "Creating Account..." : "Create FarmTrac Account"}
               </button>
-              <span className="text-sm text-gray-500">or sign up with</span>
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  className="h-15 w-15 rounded-full bg-gray-100 flex justify-center items-center text-red-600 shadow hover:shadow-md transition"
-                >
-                  <FcGoogle className="text-[35px]" />
-                </button>
-              </div>
             </div>
           </form>
         </div>

@@ -16,6 +16,8 @@ import AdminDashboard from "./admin/AdminDashboard";
 import Navbar         from "./components/Navbar";
 import Footer         from "./components/Footer";
 import About from "./pages/About";
+import OrderSuccess from "./pages/OrderSuccess";
+import MyOrders    from "./pages/MyOrders";
 
 const Layout = ({ children }) => (
   <><Navbar />{children}<Footer /></>
@@ -45,6 +47,9 @@ const App = () => {
 
       {/* Admin */}
       <Route path="/admin/dashboard"   element={<AdminDashboard />} />
+
+      <Route path="/order-success/:id" element={<Layout><OrderSuccess /></Layout>} />
+      <Route path="/my-orders"         element={<Layout><MyOrders /></Layout>} />
     </Routes>
   );
 };

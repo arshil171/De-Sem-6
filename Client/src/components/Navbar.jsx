@@ -32,7 +32,8 @@ const Navbar = () => {
     { label: 'Tractors',    to: '/tractors' },
     { label: 'My Bookings', to: '/my-bookings' },
     { label: 'Marketplace', to: '/marketplace' },
-    { label: 'About Us',    to: '/about' },   // 
+    { label: 'About Us',    to: '/about' }, 
+    { label: 'My Orders',   to: '/my-orders' }  
   ]
 
   //  DRIVER links 
