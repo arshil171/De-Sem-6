@@ -34,6 +34,13 @@ export const createBooking = async (req, res) => {
             });
         }
 
+        if (!tractor.driverId) {
+            return res.status(400).json({
+                success: false,
+                message: "Tractor's owner account is no longer available.",
+            });
+        }
+
         if (!tractor.availability) {
             return res.status(400).json({
                 success: false,
@@ -103,7 +110,6 @@ export const getDriverBooking = async (req, res) => {
         const bookings = await bookingModel
             .find({
                 driverId: req.user._id,
-                status: "pending",
             })
             .populate("farmerId", "name phone email")
             .populate("tractorId", "tractorName pricePerHour")

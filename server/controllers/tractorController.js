@@ -125,6 +125,31 @@ export const deleteTractor = async (req, res) => {
 }
 
 
+// get single tractor by id (for booking page)
+export const getTractorById = async (req, res) => {
+    try {
+        const tractor = await tractorModel.findById(req.params.id).populate("driverId", "name email")
+
+        if (!tractor) {
+            return res.status(404).json({
+                success: false,
+                message: "Tractor not found"
+            })
+        }
+
+        res.status(200).json({
+            success: true,
+            data: tractor
+        })
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Server Error",
+            error: error.message
+        })
+    }
+}
+
 //for user
 export const getTractors = async (req, res) => {
     try {

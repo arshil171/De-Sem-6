@@ -3,18 +3,24 @@ import {
   createProduct,
   getAllProducts,
   getProduct,
+  getSellerProducts,
   updateProduct,
   deleteProduct
 } from "../controllers/productController.js"
-import { requireAuth, requireAdmin } from "../middleware/authMiddleware.js"
+import { requireAuth, requireAdminOrDriver, requireDriver } from "../middleware/authMiddleware.js"
 
 const productRoute = express.Router()
 
+// Public
 productRoute.get("/", getAllProducts)
 productRoute.get("/:id", getProduct)
 
-productRoute.post("/", requireAuth, requireAdmin, createProduct)
-productRoute.put("/:id", requireAuth, requireAdmin, updateProduct)
-productRoute.delete("/:id", requireAuth, requireAdmin, deleteProduct)
+// Driver only
+productRoute.get("/seller/my-products", requireAuth, requireDriver, getSellerProducts)
+
+// Admin or Driver
+productRoute.post("/", requireAuth, requireAdminOrDriver, createProduct)
+productRoute.put("/:id", requireAuth, requireAdminOrDriver, updateProduct)
+productRoute.delete("/:id", requireAuth, requireAdminOrDriver, deleteProduct)
 
 export default productRoute

@@ -138,9 +138,13 @@ const Cart = () => {
             if (verifyRes.data.success) {
               // Redirect to success page
               navigate(`/order-success/${verifyRes.data.orderId}`)
+            } else {
+              setError('Payment verification failed. Please contact support.')
+              setPaying(false)
             }
-          } catch {
-            setError('Payment verification failed. Contact support.')
+          } catch (err) {
+            setError(err.response?.data?.message || 'Payment verification failed. Contact support.')
+            setPaying(false)
           }
         },
 
