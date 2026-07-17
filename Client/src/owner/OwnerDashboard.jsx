@@ -10,8 +10,10 @@ import {
 
 const OwnerDashboard = () => {
   const [tractors, setTractors]           = useState([])
+  const [products, setProducts]           = useState([])
   const [bookings, setBookings]           = useState([])
   const [loadingT, setLoadingT]           = useState(true)
+  const [loadingP, setLoadingP]           = useState(true)
   const [loadingB, setLoadingB]           = useState(true)
   const [activeTab, setActiveTab]         = useState('tractors')
   const [error, setError]                 = useState('')
@@ -35,6 +37,7 @@ const OwnerDashboard = () => {
 
   useEffect(() => {
     fetchMyTractors()
+    fetchMyProducts()
     fetchDriverBookings()
   }, [])
 
@@ -50,6 +53,14 @@ const OwnerDashboard = () => {
       setTractors(res.data.data)
     } catch { flash('Failed to load tractors.', true) }
     finally { setLoadingT(false) }
+  }
+
+  const fetchMyProducts = async () => {
+    try {
+      const res = await axios.get(`${BASE}/product/seller/my-products`, { withCredentials: true })
+      setProducts(res.data.data || [])
+    } catch { flash('Failed to load products.', true) }
+    finally { setLoadingP(false) }
   }
 
   const fetchDriverBookings = async () => {
@@ -71,12 +82,20 @@ const OwnerDashboard = () => {
 
   const handleDelete = async (id) => {
     try {
-      // ✅ FIXED: /tractor/deleteTractor/:id
       await axios.delete(`${BASE}/tractor/deleteTractor/${id}`, { withCredentials: true })
       setTractors(prev => prev.filter(t => t._id !== id))
       setDeleteId(null)
       flash('Tractor removed!')
-    } catch { flash('Failed to delete.', true) }
+    } catch { flash('Failed to delete tractor.', true) }
+  }
+
+  const handleDeleteProduct = async (id) => {
+    if (!window.confirm("Delete this product?")) return
+    try {
+      await axios.delete(`${BASE}/product/${id}`, { withCredentials: true })
+      setProducts(prev => prev.filter(p => p._id !== id))
+      flash('Product deleted!')
+    } catch { flash('Failed to delete product.', true) }
   }
 
   const openEdit = (tractor) => {
@@ -139,13 +158,19 @@ const OwnerDashboard = () => {
             <p className="text-yellow-600 text-xs font-bold uppercase tracking-widest mb-2">Driver Panel</p>
             <h1 className="text-3xl font-black text-white">Dashboard</h1>
           </div>
-          <Link to="/owner/add-tractor"
-            className="flex items-center gap-2 px-5 py-3 bg-yellow-600 hover:bg-yellow-500 text-[#0a150a] font-bold text-sm rounded-xl transition-colors">
-            <Plus className="w-4 h-4" /> Add Tractor
-          </Link>
+          <div className="flex gap-3">
+            <Link to="/owner/add-tractor"
+              className="flex items-center gap-2 px-5 py-3 bg-yellow-600 hover:bg-yellow-500 text-[#0a150a] font-bold text-sm rounded-xl transition-colors">
+              <Plus className="w-4 h-4" /> Add Tractor
+            </Link>
+            <Link to="/owner/add-product"
+              className="flex items-center gap-2 px-5 py-3 bg-[#1a2e1a] hover:bg-[#2d4a2d] border border-[#2d4a2d] text-green-400 hover:text-white font-bold text-sm rounded-xl transition-colors">
+              <Plus className="w-4 h-4" /> Add Product
+            </Link>
+          </div>
         </div>
         <div className="max-w-6xl mx-auto flex gap-2 mt-6">
-          {['tractors', 'bookings'].map(tab => {
+          {['tractors', 'products', 'bookings'].map(tab => {
             const activeBookingsCount = bookings.filter(b => b.status === 'pending' || b.status === 'accepted').length
             return (
               <button key={tab} onClick={() => setActiveTab(tab)}
@@ -214,6 +239,45 @@ const OwnerDashboard = () => {
                     <button onClick={() => setDeleteId(tractor._id)}
                       className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-red-950/20 hover:bg-red-950/40 border border-red-900/40 hover:border-red-800 text-red-400 text-sm font-semibold transition-all">
                       <Trash2 className="w-3.5 h-3.5" /> Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* ── PRODUCTS TAB ── */}
+        {activeTab === 'products' && (
+          <>
+            {loadingP && <div className="flex justify-center py-20"><div className="w-10 h-10 border-4 border-yellow-600 border-t-transparent rounded-full animate-spin" /></div>}
+            {!loadingP && products.length === 0 && (
+              <div className="text-center py-24">
+                <Tractor className="w-16 h-16 text-[#2d4a2d] mx-auto mb-4" />
+                <p className="text-[#4b6b4b] text-lg font-semibold">No products added yet</p>
+                <Link to="/owner/add-product" className="text-yellow-500 text-sm hover:underline mt-2 inline-block">Add your first product →</Link>
+              </div>
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {products.map(product => (
+                <div key={product._id} className="bg-[#111f11] border border-[#1f3a1f] rounded-2xl p-6 flex flex-col gap-4">
+                  <div className="flex items-start justify-between">
+                    <div className="w-12 h-12 bg-[#1a2e1a] border border-[#2d4a2d] rounded-xl flex items-center justify-center overflow-hidden">
+                       <span className="text-yellow-500 text-xl font-bold">{product.name.charAt(0)}</span>
+                    </div>
+                    <span className={`text-xs font-bold px-2.5 py-1 rounded-full bg-green-900/50 text-green-300 capitalize`}>{product.category}</span>
+                  </div>
+                  <div>
+                    <h3 className="text-white font-bold text-lg line-clamp-1">{product.name}</h3>
+                    <div className="flex items-center gap-1.5 mt-1 text-green-600 text-sm">
+                      <MapPin className="w-3.5 h-3.5 text-yellow-700" /> Stock: {product.stock} units
+                    </div>
+                    <p className="text-yellow-400 font-black text-2xl mt-2">₹{product.price}</p>
+                  </div>
+                  <div className="flex gap-2 pt-1 border-t border-[#1f3a1f] mt-auto">
+                    <button onClick={() => handleDeleteProduct(product._id)}
+                      className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-red-950/20 hover:bg-red-950/40 border border-red-900/40 hover:border-red-800 text-red-400 text-sm font-semibold transition-all">
+                      <Trash2 className="w-3.5 h-3.5" /> Delete Product
                     </button>
                   </div>
                 </div>

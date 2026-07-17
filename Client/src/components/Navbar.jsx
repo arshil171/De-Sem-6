@@ -41,6 +41,7 @@ const Navbar = () => {
     { label: 'Home',        to: '/home' },
     { label: 'Dashboard',   to: '/owner/dashboard' },
     { label: 'Add Tractor', to: '/owner/add-tractor' },
+    { label: 'Add Product', to: '/owner/add-product' },
     { label: 'Marketplace', to: '/marketplace' },
     { label: 'My Orders',   to: '/my-orders' },
     { label: 'About Us',    to: '/about' },
