@@ -186,12 +186,9 @@ export const login = async (req, res) => {
             });
         }
 
-        // +password explicitly includes password if select: false is used
         const user = await userModel
             .findOne({ email })
             .select("+password");
-
-        console.log("USER:", user);
 
         if (!user) {
             return res.status(401).json({
@@ -200,17 +197,12 @@ export const login = async (req, res) => {
         }
 
         if (!user.password) {
-            console.log("Password field missing from user document");
-
             return res.status(400).json({
                 message: "User password not found"
             });
         }
 
-        const result = await bcrypt.compare(
-            password,
-            user.password
-        );
+        const result = await bcrypt.compare(password, user.password);
 
         if (!result) {
             return res.status(400).json({
@@ -219,14 +211,9 @@ export const login = async (req, res) => {
         }
 
         const token = jwt.sign(
-            {
-                id: user._id,
-                role: user.role
-            },
+            { id: user._id, role: user.role },
             process.env.JWT_SECRET,
-            {
-                expiresIn: "7d"
-            }
+            { expiresIn: "7d" }
         );
 
         res.cookie("token", token, {
@@ -236,12 +223,17 @@ export const login = async (req, res) => {
 
         return res.status(200).json({
             message: "Login successful",
-            token
+            token,
+            role: user.role,
+            user: {
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
         });
 
     } catch (error) {
         console.log("LOGIN ERROR:", error);
-
         return res.status(500).json({
             message: "Login Failed",
             error: error.message

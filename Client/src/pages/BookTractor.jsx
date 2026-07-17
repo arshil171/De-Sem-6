@@ -48,7 +48,6 @@ const BookTractor = () => {
     if (!validate()) return
     setSubmitting(true); setError('')
     try {
-      // ✅ FIXED: /booking/create (not /bookingPage/bookTractor)
       await axios.post(
         `${BASE}/booking/create`,
         {
