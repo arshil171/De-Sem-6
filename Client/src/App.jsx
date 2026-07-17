@@ -15,6 +15,7 @@ import AddTractor     from "./owner/AddTractor";
 import AdminDashboard from "./admin/AdminDashboard";  
 import Navbar         from "./components/Navbar";
 import Footer         from "./components/Footer";
+import About from "./pages/About";
 
 const Layout = ({ children }) => (
   <><Navbar />{children}<Footer /></>
@@ -36,6 +37,7 @@ const App = () => {
       <Route path="/my-bookings"      element={<Layout><MyBookings /></Layout>} />
       <Route path="/marketplace"      element={<Layout><Marketplace /></Layout>} />
       <Route path="/cart"             element={<Layout><Cart /></Layout>} />
+      <Route path="/about"            element={<Layout><About /></Layout>} />
 
       {/* Driver */}
       <Route path="/owner/dashboard"   element={<Layout><OwnerDashboard /></Layout>} />

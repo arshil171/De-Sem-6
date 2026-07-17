@@ -26,29 +26,42 @@ const Navbar = () => {
     }
   }
 
-  // ── FARMER: book tractors, see bookings, marketplace ────────────
+  // FARMER links
   const farmerLinks = [
     { label: 'Home',        to: '/home' },
     { label: 'Tractors',    to: '/tractors' },
     { label: 'My Bookings', to: '/my-bookings' },
     { label: 'Marketplace', to: '/marketplace' },
+    { label: 'About Us',    to: '/about' },   // 
   ]
 
-  // ── DRIVER: manage tractors & incoming bookings ─────────────────
+  //  DRIVER links 
   const driverLinks = [
     { label: 'Home',        to: '/home' },
     { label: 'Dashboard',   to: '/owner/dashboard' },
     { label: 'Add Tractor', to: '/owner/add-tractor' },
+    { label: 'About Us',    to: '/about' },  
   ]
 
-  // ── GUEST: only home ────────────────────────────────────────────
+  // ADMIN links
+  const adminLinks = [
+    { label: 'Dashboard', to: '/admin/dashboard' },
+    { label: 'Users',     to: '/admin/users' },
+    { label: 'Bookings',  to: '/admin/bookings' },
+    { label: 'Tractors',  to: '/admin/tractors' },
+    { label: 'Products',  to: '/admin/products' },
+  ]
+
+  // GUEST links
   const guestLinks = [
-    { label: 'Home', to: '/home' },
+    { label: 'Home',     to: '/home' },
+    { label: 'About Us', to: '/about' },   
   ]
 
   const getLinks = () => {
     if (user?.role === 'farmer') return farmerLinks
     if (user?.role === 'driver') return driverLinks
+    if (user?.role === 'admin')  return adminLinks
     return guestLinks
   }
 
@@ -63,6 +76,12 @@ const Navbar = () => {
       return (
         <span className="text-[10px] bg-yellow-900 text-yellow-200 font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
           Driver
+        </span>
+      )
+    if (user?.role === 'admin')
+      return (
+        <span className="text-[10px] bg-red-900 text-red-200 font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
+          Admin
         </span>
       )
     return null
@@ -110,7 +129,6 @@ const Navbar = () => {
         {/* ── Desktop Right Side ── */}
         <div className="hidden lg:flex items-center gap-3 shrink-0">
           {user ? (
-            // ✅ LOGGED IN — show avatar + name + role badge + ONLY logout
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-full bg-yellow-600 flex items-center justify-center text-[#0a150a] text-sm font-extrabold shrink-0">
@@ -121,7 +139,6 @@ const Navbar = () => {
                   {getRoleBadge()}
                 </div>
               </div>
-              {/* ✅ ONLY logout shown when logged in */}
               <button
                 onClick={handleLogout}
                 className="px-5 py-2 rounded-full bg-yellow-600 hover:bg-yellow-500 text-[#0a150a] text-sm font-bold transition-colors duration-200"
@@ -130,7 +147,6 @@ const Navbar = () => {
               </button>
             </div>
           ) : (
-            // ✅ GUEST — login + register as farmer + register as driver
             <div className="flex items-center gap-2">
               <Link
                 to="/login"
@@ -178,7 +194,6 @@ const Navbar = () => {
       {menuOpen && (
         <div className="lg:hidden bg-[#0d1a0d] border-t border-green-900 px-6 pb-6 pt-4 flex flex-col gap-4">
 
-          {/* User info strip */}
           {user && (
             <div className="flex items-center gap-3 pb-3 border-b border-green-900">
               <div className="w-9 h-9 rounded-full bg-yellow-600 flex items-center justify-center text-[#0a150a] font-extrabold shrink-0">
@@ -191,7 +206,6 @@ const Navbar = () => {
             </div>
           )}
 
-          {/* Nav links */}
           {getLinks().map((link) => (
             <Link
               key={link.to}
@@ -203,10 +217,8 @@ const Navbar = () => {
             </Link>
           ))}
 
-          {/* Auth buttons */}
           <div className="flex flex-col gap-2.5 pt-3 border-t border-green-900">
             {user ? (
-              // ✅ Logged in mobile — ONLY logout
               <button
                 onClick={handleLogout}
                 className="py-2.5 rounded-full bg-yellow-600 text-[#0a150a] font-bold text-sm hover:bg-yellow-500 transition-colors"
@@ -214,7 +226,6 @@ const Navbar = () => {
                 Logout
               </button>
             ) : (
-              // ✅ Guest mobile
               <>
                 <Link
                   to="/login"
