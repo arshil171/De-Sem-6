@@ -122,10 +122,6 @@ export const forgotPassword = async (req, res) => {
         });
 
     }
-
-
-
-
 }
 
 export const checkOtp = async (req, res) => {

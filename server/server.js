@@ -13,6 +13,7 @@ import bookingRoute from "./routes/bookingRoutes.js";
 import productRoute from "./routes/productRoutes.js";
 import cartRoute from "./routes/cartRoutes.js";
 import adminRoute from "./routes/adminRoutes.js";
+import paymentRoute from "./routes/paymentRoutes.js"  
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -46,7 +47,7 @@ app.use("/tractor", tractorRoute);
 app.use("/booking", bookingRoute);
 app.use("/product", productRoute);
 app.use("/cart", cartRoute);
-
+app.use("/payment", paymentRoute)   
 
 // ==========================================
 // START SERVER
