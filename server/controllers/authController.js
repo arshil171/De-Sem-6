@@ -1,4 +1,5 @@
 import { userModel } from "../models/userModel.js"
+import { subscriberModel } from "../models/subscriberModel.js"
 import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 import nodemailer from "nodemailer"
@@ -255,3 +256,77 @@ export const logout = (req, res) => {
         });
     }
 };
+
+export const googleLogin = async (req, res) => {
+    try {
+        const { email, name } = req.body;
+
+        if (!email) {
+            return res.status(400).json({
+                message: "Email is required"
+            });
+        }
+
+        let user = await userModel.findOne({ email });
+
+        if (!user) {
+            // User doesn't exist, create a new one with default role 'farmer'
+            const randomPassword = await bcrypt.hash(Math.random().toString(36).slice(-8), 10);
+            user = await userModel.create({
+                name: name || "Google User",
+                email,
+                password: randomPassword,
+                role: "farmer",
+                phone: "0000000000" // Default placeholder phone
+            });
+        }
+
+        const token = jwt.sign(
+            { id: user._id, role: user.role },
+            process.env.JWT_SECRET,
+            { expiresIn: "7d" }
+        );
+
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: false
+        });
+
+        return res.status(200).json({
+            message: "Google login successful",
+            token,
+            role: user.role,
+            user: {
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
+        });
+    } catch (error) {
+        console.log("GOOGLE LOGIN ERROR:", error);
+        return res.status(500).json({
+            message: "Google Login Failed",
+            error: error.message
+        });
+    }
+};
+
+export const subscribe = async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) {
+            return res.status(400).json({ message: "Email is required" });
+        }
+        
+        const existingSubscriber = await subscriberModel.findOne({ email });
+        if (existingSubscriber) {
+            return res.status(409).json({ message: "Email is already subscribed" });
+        }
+        
+        await subscriberModel.create({ email });
+        
+        return res.status(201).json({ message: "Subscribed successfully!" });
+    } catch (error) {
+        return res.status(500).json({ message: "Subscription failed", error: error.message });
+    }
+};

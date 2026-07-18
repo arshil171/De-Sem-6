@@ -1,5 +1,5 @@
 import express from "express"
-import { register, login , forgotPassword , checkOtp, passwordChange, logout } from "../controllers/authController.js"
+import { register, login , forgotPassword , checkOtp, passwordChange, logout, googleLogin, subscribe } from "../controllers/authController.js"
 // import { requireAuth } from "../middleware/authMiddleware"
 
 
@@ -12,5 +12,7 @@ authRoute.post("/forgotPassword", forgotPassword)
 authRoute.post("/checkOtp", checkOtp)
 authRoute.post("/passwordChange", passwordChange)
 authRoute.post("/logout" , logout)
+authRoute.post("/google", googleLogin)
+authRoute.post("/subscribe", subscribe)
 
 export default authRoute

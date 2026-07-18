@@ -48,10 +48,24 @@ const Login = () => {
     try {
       const result = await signInWithPopup(auth, provider);
       const googleUser = result.user;
-      login({ name: googleUser.displayName, role: "farmer" }, googleUser.accessToken);
-      navigate("/home");
+      
+      const res = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/auth/google`,
+        { email: googleUser.email, name: googleUser.displayName },
+        { withCredentials: true }
+      );
+
+      const userRole = res.data.role;
+      const userName = res.data.user?.name || googleUser.displayName;
+
+      login({ name: userName, role: userRole }, res.data.token);
+
+      if (userRole === "admin")        navigate("/admin/dashboard");
+      else if (userRole === "driver")  navigate("/owner/dashboard");
+      else                              navigate("/home");
+
     } catch (err) {
-      alert(err.message || "Google login failed");
+      alert(err.response?.data?.message || err.message || "Google login failed");
     } finally {
       setGoogleLoading(false);
     }
