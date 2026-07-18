@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import axios from 'axios'
 import { ShoppingCart, Search, Package, Plus, CheckCircle2 } from 'lucide-react'
 
@@ -13,6 +13,7 @@ const Marketplace = () => {
   const [addedId, setAddedId]     = useState('')
   const [cartCount, setCartCount] = useState(0)
 
+  const navigate = useNavigate()
   const BASE = import.meta.env.VITE_BASE_URL
   const categories = ['all', 'seeds', 'fertilizer', 'tools', 'equipment']
 
@@ -40,8 +41,12 @@ const Marketplace = () => {
       if (search.trim()) params.search = search
       const res = await axios.get(`${BASE}/product`, { params, withCredentials: true })
       setProducts(res.data.data)
-    } catch {
-      setError('Failed to load products.')
+    } catch (err) {
+      if (err.response?.status === 401) {
+        navigate('/login')
+      } else {
+        setError('Failed to load products.')
+      }
     } finally {
       setLoading(false)
     }

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
+import { useNavigate } from 'react-router'
 import { Package, CheckCircle2, XCircle, Clock } from 'lucide-react'
 
 const MyOrders = () => {
@@ -7,6 +8,7 @@ const MyOrders = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState('')
 
+  const navigate = useNavigate()
   const BASE = import.meta.env.VITE_BASE_URL
 
   useEffect(() => { fetchOrders() }, [])
@@ -15,8 +17,12 @@ const MyOrders = () => {
     try {
       const res = await axios.get(`${BASE}/payment/my-orders`, { withCredentials: true })
       setOrders(res.data.data)
-    } catch {
-      setError('Failed to load orders.')
+    } catch (err) {
+      if (err.response?.status === 401) {
+        navigate('/login')
+      } else {
+        setError('Failed to load orders.')
+      }
     } finally {
       setLoading(false)
     }

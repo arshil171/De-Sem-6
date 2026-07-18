@@ -208,6 +208,7 @@
 
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
+import { useNavigate } from 'react-router'
 import { MapPin, Clock, Tractor, Calendar, Star, X } from 'lucide-react'
 
 const MyBookings = () => {
@@ -220,6 +221,7 @@ const MyBookings = () => {
   const [reviewForm, setReviewForm]   = useState({ rating: 5, review: '' })
   const [submitting, setSubmitting]   = useState(false)
 
+  const navigate = useNavigate()
   const BASE = import.meta.env.VITE_BASE_URL
 
   useEffect(() => { fetchBookings() }, [])
@@ -229,8 +231,12 @@ const MyBookings = () => {
       // ✅ FIXED: /booking/my
       const res = await axios.get(`${BASE}/booking/my`, { withCredentials: true })
       setBookings(res.data.data)
-    } catch {
-      setError('Failed to load bookings.')
+    } catch (err) {
+      if (err.response?.status === 401) {
+        navigate('/login')
+      } else {
+        setError('Failed to load bookings.')
+      }
     } finally {
       setLoading(false)
     }

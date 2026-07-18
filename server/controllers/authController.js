@@ -174,9 +174,9 @@ export const passwordChange = async (req, res) => {
 }
 export const login = async (req, res) => {
     try {
-        const { name, email, password } = req.body;
+        const { email, password } = req.body;
 
-        if (!name || !email || !password) {
+        if (!email || !password) {
             return res.status(400).json({
                 message: "All Fields are required"
             });
