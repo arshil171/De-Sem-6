@@ -1,9 +1,35 @@
-import React from "react";
+import React, { useState } from "react";
+import axios from "axios";
 import { Link } from "react-router";
 import { MapPin, Phone, Mail } from "lucide-react";
 import Logo from '../assets/images/Logo.png'
 
 const Footer = () => {
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubscribe = async (e) => {
+    e.preventDefault();
+    if (!email) {
+      setMessage("Please enter an email");
+      return;
+    }
+
+    setLoading(true);
+    setMessage("");
+
+    try {
+      const response = await axios.post("http://localhost:8080/auth/subscribe", { email });
+      setMessage(response.data.message || "Subscribed successfully!");
+      setEmail("");
+    } catch (error) {
+      setMessage(error.response?.data?.message || "Subscription failed. Try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <footer className="bg-green-900 text-green-100">
 
@@ -143,16 +169,26 @@ const Footer = () => {
               <p className="text-green-400 text-xs mb-3">
                 Get farming tips & updates in your inbox.
               </p>
-              <div className="flex gap-2">
-                <input
-                  type="email"
-                  placeholder="Your email"
-                  className="flex-1 min-w-0 bg-green-800 border border-green-700 focus:border-green-400 rounded-lg px-3 py-2 text-sm text-white placeholder-green-500 outline-none transition-colors duration-200"
-                />
-                <button className="bg-green-600 hover:bg-green-500 text-white text-xs font-semibold px-3 py-2 rounded-lg transition-colors duration-200 whitespace-nowrap">
-                  Subscribe
-                </button>
-              </div>
+              <form onSubmit={handleSubscribe} className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Your email"
+                    className="flex-1 min-w-0 bg-green-800 border border-green-700 focus:border-green-400 rounded-lg px-3 py-2 text-sm text-white placeholder-green-500 outline-none transition-colors duration-200"
+                    disabled={loading}
+                  />
+                  <button 
+                    type="submit" 
+                    className="bg-green-600 hover:bg-green-500 text-white text-xs font-semibold px-3 py-2 rounded-lg transition-colors duration-200 whitespace-nowrap"
+                    disabled={loading}
+                  >
+                    {loading ? "..." : "Subscribe"}
+                  </button>
+                </div>
+                {message && <p className="text-xs text-yellow-400">{message}</p>}
+              </form>
             </div>
           </div>
         </div>

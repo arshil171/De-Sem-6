@@ -374,16 +374,10 @@ const MyBookings = () => {
                     </button>
                   )}
                   {booking.status === 'accepted' && (
-                    <>
-                      <button onClick={() => handleComplete(booking._id)}
-                        className="px-4 py-2 rounded-xl bg-green-950/30 hover:bg-green-950/60 border border-green-900/50 text-green-400 text-xs font-bold transition-colors">
-                        Complete
-                      </button>
-                      <button onClick={() => handleCancel(booking._id)}
-                        className="px-4 py-2 rounded-xl bg-red-950/30 hover:bg-red-950/60 border border-red-900/50 text-red-400 text-xs font-bold transition-colors">
-                        Cancel
-                      </button>
-                    </>
+                    <button onClick={() => handleCancel(booking._id)}
+                      className="px-4 py-2 rounded-xl bg-red-950/30 hover:bg-red-950/60 border border-red-900/50 text-red-400 text-xs font-bold transition-colors">
+                      Cancel
+                    </button>
                   )}
                   {booking.status === 'completed' && !booking.rating && (
                     <button onClick={() => { setReviewModal(booking._id); setReviewForm({ rating: 5, review: '' }) }}
