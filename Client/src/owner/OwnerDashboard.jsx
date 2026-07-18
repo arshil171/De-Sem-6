@@ -482,6 +482,8 @@ const OwnerDashboard = () => {
       await axios.put(`${BASE}/booking/${action}/${id}`, {}, { withCredentials: true })
       if (action === 'accept') {
         setBookings(prev => prev.map(b => b._id === id ? { ...b, status: 'accepted' } : b))
+      } else if (action === 'complete') {
+        setBookings(prev => prev.map(b => b._id === id ? { ...b, status: 'completed', completedAt: new Date().toISOString() } : b))
       } else {
         setBookings(prev => prev.filter(b => b._id !== id))
       }
@@ -502,6 +504,7 @@ const OwnerDashboard = () => {
     const statusColors = {
       pending:   'bg-yellow-950 text-yellow-400 border border-yellow-800/40',
       accepted:  'bg-green-950 text-green-400 border border-green-800/40',
+      completed: 'bg-blue-950 text-blue-400 border border-blue-800/40',
     }
     return (
       <div key={booking._id} className="bg-[#111f11] border border-[#1f3a1f] rounded-2xl p-6">
@@ -554,6 +557,9 @@ const OwnerDashboard = () => {
           <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {booking.hours} hours</span>
           <span>Date: {new Date(booking.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
           <span>Time: {new Date(booking.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span>
+          {booking.completedAt && (
+            <span>Completed Date: {new Date(booking.completedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+          )}
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
           {booking.status === 'pending' && (
@@ -602,14 +608,21 @@ const OwnerDashboard = () => {
           </Link>
         </div>
         <div className="max-w-6xl mx-auto flex gap-2 mt-6">
-          {['tractors', 'bookings'].map(tab => (
+          {['tractors', 'bookings', 'completed'].map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)}
               className={`px-5 py-2 rounded-xl text-sm font-bold capitalize transition-all ${
                 activeTab === tab ? 'bg-yellow-600 text-[#0a150a]' : 'bg-[#1f3a1f] text-green-400 hover:bg-[#2d4a2d]'
               }`}>
               {tab}
-              {tab === 'bookings' && bookings.length > 0 && (
-                <span className="ml-2 bg-red-600 text-white text-xs rounded-full px-1.5 py-0.5">{bookings.length}</span>
+              {tab === 'bookings' && bookings.filter(b => b.status === 'pending' || b.status === 'accepted').length > 0 && (
+                <span className="ml-2 bg-red-600 text-white text-xs rounded-full px-1.5 py-0.5">
+                  {bookings.filter(b => b.status === 'pending' || b.status === 'accepted').length}
+                </span>
+              )}
+              {tab === 'completed' && bookings.filter(b => b.status === 'completed').length > 0 && (
+                <span className="ml-2 bg-blue-600 text-white text-xs rounded-full px-1.5 py-0.5">
+                  {bookings.filter(b => b.status === 'completed').length}
+                </span>
               )}
             </button>
           ))}
@@ -680,14 +693,14 @@ const OwnerDashboard = () => {
         {activeTab === 'bookings' && (
           <>
             {loadingB && <div className="flex justify-center py-20"><div className="w-10 h-10 border-4 border-yellow-600 border-t-transparent rounded-full animate-spin" /></div>}
-            {!loadingB && bookings.length === 0 && (
+            {!loadingB && bookings.filter(b => b.status === 'pending' || b.status === 'accepted').length === 0 && (
               <div className="text-center py-24">
                 <CheckCircle2 className="w-16 h-16 text-[#2d4a2d] mx-auto mb-4" />
                 <p className="text-[#4b6b4b] text-lg font-semibold">No bookings found</p>
                 <p className="text-[#3a5a3a] text-sm mt-1">New requests will appear here</p>
               </div>
             )}
-            {!loadingB && bookings.length > 0 && (
+            {!loadingB && bookings.filter(b => b.status === 'pending' || b.status === 'accepted').length > 0 && (
               <div className="space-y-8">
                 {/* Pending Section */}
                 {bookings.filter(b => b.status === 'pending').length > 0 && (
@@ -720,6 +733,24 @@ const OwnerDashboard = () => {
                     <p className="text-[#4b6b4b] text-lg font-semibold">No active bookings</p>
                   </div>
                 )}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ── COMPLETED TAB ── */}
+        {activeTab === 'completed' && (
+          <>
+            {loadingB && <div className="flex justify-center py-20"><div className="w-10 h-10 border-4 border-yellow-600 border-t-transparent rounded-full animate-spin" /></div>}
+            {!loadingB && bookings.filter(b => b.status === 'completed').length === 0 && (
+              <div className="text-center py-24">
+                <CheckCircle2 className="w-16 h-16 text-[#2d4a2d] mx-auto mb-4" />
+                <p className="text-[#4b6b4b] text-lg font-semibold">No completed bookings found</p>
+              </div>
+            )}
+            {!loadingB && bookings.filter(b => b.status === 'completed').length > 0 && (
+              <div className="space-y-4">
+                {bookings.filter(b => b.status === 'completed').map(booking => renderBookingCard(booking))}
               </div>
             )}
           </>

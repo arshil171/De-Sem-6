@@ -642,7 +642,7 @@ export const getDriverBooking = async (req, res) => {
         const bookings = await bookingModel
             .find({
                 driverId: req.user._id,
-                status: { $in: ["pending", "accepted"] },
+                status: { $in: ["pending", "accepted", "completed"] },
             })
             .populate("farmerId", "name phone email")
             .populate("tractorId", "tractorName pricePerHour")
@@ -875,6 +875,7 @@ export const completeBooking = async (req, res) => {
         const booking = await bookingModel
             .findById(id)
             .populate("farmerId", "name email")
+            .populate("driverId", "name email")
             .populate("tractorId", "tractorName");
 
         if (!booking) {
@@ -916,10 +917,30 @@ export const completeBooking = async (req, res) => {
 
 
         if (booking.farmerId?.email) {
+            const bookingDate = new Date(booking.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+            const bookingTime = new Date(booking.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+            const completionTime = new Date(booking.completedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) + " " + new Date(booking.completedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+
+            const mailText = `Hello ${booking.farmerId.name},
+
+Your booking has been completed successfully.
+
+Booking Details:
+Booking ID: ${booking._id}
+Farmer Name: ${booking.farmerId.name}
+Driver Name: ${booking.driverId?.name || '—'}
+Tractor Details: ${booking.tractorId?.tractorName || '—'}
+Booking Date: ${bookingDate}
+Booking Time: ${bookingTime}
+Completion Time: ${completionTime}
+Status = Completed
+
+Thank you for using our service!`;
+
             await sendEmail(
                 booking.farmerId.email,
-                "Booking Completed ✅",
-                `Hello ${booking.farmerId.name}, your booking has been successfully completed. Thank you for using our service 🚜`
+                "Booking Completed Successfully",
+                mailText
             );
         }
 
