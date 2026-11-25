@@ -19,9 +19,10 @@ import Footer         from "./components/Footer";
 import About from "./pages/About";
 import OrderSuccess from "./pages/OrderSuccess";
 import MyOrders    from "./pages/MyOrders";
+import ChatBot  from "./components/ChatBot";   
 
 const Layout = ({ children }) => (
-  <><Navbar />{children}<Footer /></>
+  <><Navbar />{children}<Footer /> <ChatBot /></>
 );
 
 const App = () => {
