@@ -613,7 +613,7 @@ export default function ChatBot() {
             style={{ maxHeight: "400px" }}
             onClick={() => setShowLangMenu(false)}
           >
-            {/* Suggestions */}
+            {/* Suggestions */}  
             {messages.length === 1 && (
               <div className="space-y-1.5 mb-2">
                 <p className="text-[#3a5a3a] text-[10px] font-bold uppercase tracking-widest">
